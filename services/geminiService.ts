@@ -1,13 +1,10 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile } from "../types";
 
-const API_KEY = process.env.API_KEY || '';
-
 // Initialize safely. If no key, we will handle it in the calls.
 const getAI = () => {
-  if (!API_KEY) throw new Error("API Key missing");
-  return new GoogleGenAI({ apiKey: API_KEY });
+  if (!process.env.API_KEY) throw new Error("API Key missing");
+  return new GoogleGenAI({ apiKey: process.env.API_KEY });
 };
 
 export const generateProfiles = async (count: number = 5): Promise<UserProfile[]> => {

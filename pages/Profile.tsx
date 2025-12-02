@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Camera, Settings, Edit2, Zap, CheckCircle, AlertCircle, Trash2, Star, Plus, X, Check, ChevronLeft, ChevronRight, Globe, ChevronDown, TextQuote, MapPin, Maximize2, Loader2, AlertTriangle } from 'lucide-react';
 import { UserProfile, Language, Photo } from '../types';
@@ -42,6 +43,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, la
   // Drag and Drop State
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // Ref to track latest user state for async operations
+  const userRef = useRef(user);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   const t = translations[lang].profile;
 
@@ -110,19 +117,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, la
             // Remove from queue
             setUploadQueue(prev => prev.filter(item => item.tempId !== queueItem.tempId));
             
-            // Add to user photos (using functional update pattern if onUpdateUser supported it, 
-            // but here we must rely on the prop. Note: potential race condition if multiple finish exact same ms)
-            // To mitigate, we pass a callback or rely on the parent. 
-            // Since we can't change parent easily, we access the *current* user from props which updates on re-render.
-            // However, inside this async function 'user' is stale. 
-            // We will trigger the update using a state-updater pattern on the PARENT if possible, 
-            // but here simply calling onUpdateUser with current User prop + new photo is the standard react way 
-            // assuming the parent handles it.
-            
-            // NOTE: Ideally we'd queue these results, but for this app structure:
+            // Use userRef.current to get the most up-to-date user object
+            // This prevents race conditions if multiple uploads finish close together
+            const currentUser = userRef.current;
             onUpdateUser({ 
-                ...user, 
-                photos: [...user.photos, newPhoto] 
+                ...currentUser, 
+                photos: [...currentUser.photos, newPhoto] 
             }); 
         } else {
             // Moderation Failed
@@ -520,22 +520,30 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, la
                   
                   {/* Uploading / Error Items */}
                   {uploadQueue.map((item) => (
-                      <div key={item.tempId} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-200 border border-gray-300">
+                      <div key={item.tempId} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-inner">
                           {item.status === 'error' ? (
                               <div 
-                                className="absolute inset-0 flex flex-col items-center justify-center p-2 bg-red-50 cursor-pointer hover:bg-red-100 transition-colors"
+                                className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-red-50 cursor-pointer hover:bg-red-100 transition-colors text-center"
                                 onClick={() => handleDismissError(item.tempId)}
                               >
-                                  <AlertTriangle size={24} className="text-red-500 mb-2" />
-                                  <span className="text-[10px] text-center text-red-600 font-bold leading-tight">{item.errorMessage}</span>
-                                  <span className="text-[10px] text-gray-400 mt-2">Tap to dismiss</span>
+                                  <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mb-2">
+                                      <AlertTriangle size={16} className="text-red-500" />
+                                  </div>
+                                  <span className="text-xs text-red-600 font-bold mb-1">Upload Failed</span>
+                                  <span className="text-[10px] text-gray-500 leading-tight line-clamp-2">{item.errorMessage}</span>
                               </div>
                           ) : (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
-                                  <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin mb-2"></div>
-                                  <div className="w-2/3 h-1.5 bg-gray-300 rounded-full overflow-hidden">
+                              <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
+                                  {/* Spinning Loader */}
+                                  <Loader2 size={24} className="text-primary animate-spin mb-3" />
+                                  
+                                  {/* Percentage */}
+                                  <span className="text-xs font-bold text-gray-700 mb-1.5">{item.progress}%</span>
+                                  
+                                  {/* Bar */}
+                                  <div className="w-full max-w-[80%] h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                       <div 
-                                        className="h-full bg-primary transition-all duration-300" 
+                                        className="h-full bg-primary transition-all duration-300 ease-out rounded-full" 
                                         style={{ width: `${item.progress}%` }}
                                       ></div>
                                   </div>

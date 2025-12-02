@@ -1,0 +1,8 @@
+{
+  "name": "Divine - AI Dating",
+  "description": "Find your divine match. A fully-featured dating app powered by Google Gemini with AI matching and fair, ad-supported features.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}

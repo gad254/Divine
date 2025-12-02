@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Heart, Star, RefreshCw, RotateCcw } from 'lucide-react';
 import { Card } from '../components/Card';
 import { UserProfile, Language } from '../types';
 import { generateProfiles } from '../services/geminiService';
 import { translations } from '../utils/translations';
+import { ReportModal } from '../components/ReportModal';
 
 interface HomeProps {
   deck: UserProfile[];
@@ -18,6 +18,8 @@ interface HomeProps {
 
 export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeRight, onUndo, canUndo, lang }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportingProfile, setReportingProfile] = useState<UserProfile | null>(null);
   
   // Swipe Logic State
   const [dragX, setDragX] = useState(0);
@@ -28,25 +30,26 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
   const t = translations[lang].home;
 
   useEffect(() => {
-    if (deck.length === 0 && !isLoading) {
+    // Only load more if deck is empty AND not currently loading
+    if (deck && deck.length === 0 && !isLoading) {
       loadMoreProfiles();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deck.length]);
+  }, [deck?.length]); // Safe check for deck length
 
   const loadMoreProfiles = async () => {
     setIsLoading(true);
     const newProfiles = await generateProfiles(5);
-    setDeck(prev => [...prev, ...newProfiles]);
+    setDeck(prev => [...(prev || []), ...newProfiles]);
     setIsLoading(false);
   };
 
   const completeSwipe = (direction: 'left' | 'right') => {
-    if (animatingOut || deck.length === 0) return;
+    if (animatingOut || !deck || deck.length === 0) return;
     
     setAnimatingOut(true);
     // Move card far off screen based on direction
-    const endX = direction === 'right' ? window.innerWidth * 1.5 : -window.innerWidth * 1.5;
+    const endX = direction === 'right' ? 1000 : -1000;
     setDragX(endX);
 
     setTimeout(() => {
@@ -67,7 +70,7 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
   };
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (animatingOut || deck.length === 0) return;
+    if (animatingOut || !deck || deck.length === 0) return;
     setIsDragging(true);
     dragStartX.current = e.clientX;
     // Capture pointer to track gestures outside the element
@@ -93,9 +96,17 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
     }
   };
 
-  if (deck.length === 0) {
+  const handleReport = () => {
+      if (deck && deck.length > 0) {
+          setReportingProfile(deck[0]);
+          setShowReportModal(true);
+      }
+  };
+
+  // Safe check if deck is undefined or empty
+  if (!deck || deck.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-white">
         <div className="relative">
           <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse"></div>
           <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg relative z-10 animate-bounce">
@@ -118,9 +129,9 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col pt-4 pb-24 px-4 max-w-md mx-auto overflow-hidden">
+    <div className="relative w-full h-full flex flex-col pt-4 pb-24 px-4 overflow-hidden bg-white">
       {/* Header */}
-      <div className="flex justify-between items-center mb-4 px-2">
+      <div className="flex justify-between items-center mb-4 px-2 shrink-0">
          <div className="flex items-center gap-1">
             <span className="text-2xl font-bold text-primary">Divine</span>
             <span className="text-xs font-semibold bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-0.5 rounded-full">{t.gold}</span>
@@ -135,7 +146,7 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
           {/* Background Card Effect */}
           {deck.length > 1 && (
             <div className="absolute top-0 left-0 right-0 bottom-0 scale-[0.95] translate-y-3 opacity-60 z-0 transition-all duration-300">
-                <Card profile={deck[1]} />
+                <Card profile={deck[1]} onReport={() => {}} />
             </div>
           )}
           
@@ -148,16 +159,16 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
             >
-                <Card profile={deck[0]} />
+                <Card profile={deck[0]} onReport={handleReport} />
                 
                 {/* Visual Indicators (Stamps) */}
                 {dragX > 60 && (
-                    <div className="absolute top-8 left-8 border-4 border-green-500 text-green-500 rounded-lg px-4 py-2 font-black text-4xl -rotate-12 opacity-80 pointer-events-none bg-white/20 backdrop-blur-sm">
+                    <div className="absolute top-8 left-8 border-4 border-green-500 text-green-500 rounded-lg px-4 py-2 font-black text-4xl -rotate-12 opacity-80 pointer-events-none bg-white/20 backdrop-blur-sm z-50">
                         LIKE
                     </div>
                 )}
                 {dragX < -60 && (
-                    <div className="absolute top-8 right-8 border-4 border-red-500 text-red-500 rounded-lg px-4 py-2 font-black text-4xl rotate-12 opacity-80 pointer-events-none bg-white/20 backdrop-blur-sm">
+                    <div className="absolute top-8 right-8 border-4 border-red-500 text-red-500 rounded-lg px-4 py-2 font-black text-4xl rotate-12 opacity-80 pointer-events-none bg-white/20 backdrop-blur-sm z-50">
                         NOPE
                     </div>
                 )}
@@ -166,7 +177,7 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-center items-center gap-4 h-20 relative z-20">
+      <div className="flex justify-center items-center gap-4 h-20 relative z-20 shrink-0">
         
         {/* Undo Button */}
         <button 
@@ -202,6 +213,16 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
           <Heart size={32} fill="currentColor" />
         </button>
       </div>
+
+      {showReportModal && reportingProfile && (
+        <ReportModal 
+            isOpen={showReportModal}
+            onClose={() => setShowReportModal(false)}
+            profileName={reportingProfile.name}
+            reportedUserId={reportingProfile.id}
+            lang={lang}
+        />
+      )}
     </div>
   );
 };

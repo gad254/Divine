@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Send, MoreVertical, ShieldCheck, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Send, MoreVertical, ShieldCheck, Image as ImageIcon, Flag } from 'lucide-react';
 import { Match, Message } from '../types';
 import { chatWithMatch } from '../services/geminiService';
+import { ReportModal } from '../components/ReportModal';
 
 interface ChatProps {
   match: Match;
@@ -14,6 +14,9 @@ interface ChatProps {
 export const Chat: React.FC<ChatProps> = ({ match, messages, onBack, onSendMessage }) => {
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -42,7 +45,6 @@ export const Chat: React.FC<ChatProps> = ({ match, messages, onBack, onSendMessa
         text: m.text
     }));
 
-    // Add current message to history context manually since state might not update instantly in this closure
     const response = await chatWithMatch(userMsgText, match.profile, history);
     
     setIsTyping(false);
@@ -56,7 +58,7 @@ export const Chat: React.FC<ChatProps> = ({ match, messages, onBack, onSendMessa
   return (
     <div className="flex flex-col h-full bg-white relative z-50">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between shadow-sm bg-white">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between shadow-sm bg-white relative z-20">
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="p-1 hover:bg-gray-100 rounded-full">
             <ArrowLeft size={24} className="text-gray-600" />
@@ -77,13 +79,33 @@ export const Chat: React.FC<ChatProps> = ({ match, messages, onBack, onSendMessa
              </div>
           </div>
         </div>
-        <button className="text-gray-400">
-            <MoreVertical size={24} />
-        </button>
+        <div className="relative">
+            <button 
+                onClick={() => setShowMenu(!showMenu)}
+                className="text-gray-400 p-2 hover:bg-gray-50 rounded-full transition-colors"
+            >
+                <MoreVertical size={24} />
+            </button>
+            
+            {showMenu && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 animate-fade-in z-50">
+                    <button 
+                        onClick={() => {
+                            setShowMenu(false);
+                            setShowReportModal(true);
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 flex items-center gap-2"
+                    >
+                        <Flag size={16} />
+                        Report User
+                    </button>
+                </div>
+            )}
+        </div>
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50" onClick={() => setShowMenu(false)}>
         <div className="text-center text-xs text-gray-400 my-4">
             You matched with {match.profile.name} on {new Date(match.timestamp).toLocaleDateString()}
         </div>
@@ -141,6 +163,14 @@ export const Chat: React.FC<ChatProps> = ({ match, messages, onBack, onSendMessa
             <Send size={20} />
         </button>
       </div>
+
+      <ReportModal 
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        profileName={match.profile.name}
+        reportedUserId={match.profile.id}
+        lang="en" // Ideally pass lang prop to Chat component too
+      />
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Search } from 'lucide-react';
 import { Match, Language } from '../types';
@@ -23,12 +22,12 @@ export const Matches: React.FC<MatchesProps> = ({ matches, onSelectMatch, lang }
   return (
     <div className="flex flex-col h-full bg-white pb-24">
       {/* Header */}
-      <div className="px-6 pt-6 pb-2">
+      <div className="px-6 pt-6 pb-2 shrink-0">
         <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
       </div>
 
       {/* Search */}
-      <div className="px-6 py-2">
+      <div className="px-6 py-2 shrink-0">
         <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input 
@@ -40,7 +39,7 @@ export const Matches: React.FC<MatchesProps> = ({ matches, onSelectMatch, lang }
       </div>
 
       {/* New Matches Row */}
-      <div className="mt-4 px-6">
+      <div className="mt-4 px-6 shrink-0">
         <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{t.new}</h2>
         <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
            <div className="flex flex-col items-center space-y-1 min-w-[70px]">
@@ -69,10 +68,10 @@ export const Matches: React.FC<MatchesProps> = ({ matches, onSelectMatch, lang }
         </div>
       </div>
 
-      {/* Messages List */}
-      <div className="flex-1 mt-6 px-6">
-        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{t.messages}</h2>
-        <div className="space-y-4">
+      {/* Messages List - Scrollable */}
+      <div className="flex-1 mt-6 px-6 overflow-y-auto">
+        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 sticky top-0 bg-white py-1">{t.messages}</h2>
+        <div className="space-y-4 pb-4">
             {sortedMatches.length === 0 ? (
                 <div className="text-center text-gray-400 py-10">
                     <p>{t.noMsg}</p>

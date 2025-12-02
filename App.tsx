@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Flame } from 'lucide-react';
 import { Home } from './pages/Home';
@@ -13,7 +12,7 @@ import { AppScreen, UserProfile, Match, Message, Language } from './types';
 import { supabase } from './services/supabaseClient';
 
 const SplashScreen: React.FC = () => (
-  <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gradient-to-tr from-[#FF4458] to-[#FE3C72] text-white">
+  <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-gradient-to-tr from-[#FF4458] to-[#FE3C72] text-white">
     <div className="animate-pulse flex flex-col items-center">
       <div className="p-6 bg-white/20 rounded-full backdrop-blur-md shadow-xl mb-6 ring-4 ring-white/10">
         <Flame size={64} fill="currentColor" className="text-white drop-shadow-md" />
@@ -378,27 +377,36 @@ const App: React.FC = () => {
     }
   };
 
-  if (showSplash) {
-    return <SplashScreen />;
-  }
-
   const totalUnread = matches.reduce((acc, m) => acc + m.unreadCount, 0);
   const showNav = screen !== AppScreen.CHAT && screen !== AppScreen.LOGIN && screen !== AppScreen.SIGNUP && user !== null;
 
   return (
-    <div className="w-full h-[100dvh] bg-white overflow-hidden flex flex-col font-sans text-gray-900">
-      <main className="flex-1 relative overflow-hidden">
-        {renderScreen()}
-      </main>
-      
-      {showNav && (
-        <Navigation 
-          currentScreen={screen} 
-          setScreen={setScreen} 
-          unreadCount={totalUnread} 
-          lang={lang}
-        />
-      )}
+    <div className="fixed inset-0 bg-gray-100 flex items-center justify-center font-sans text-gray-900 overflow-hidden">
+      {/* App Container - Responsive */}
+      {/* 
+          Mobile: Full width/height, no rounding
+          Desktop: Fixed width/height relative to viewport, rounded, shadowed
+      */}
+      <div className="w-full h-full md:w-[400px] md:h-[90vh] md:max-h-[900px] bg-white md:rounded-3xl shadow-2xl overflow-hidden relative flex flex-col border-gray-200 md:border">
+        
+        {/* Main Screen Content */}
+        <main className="flex-1 relative overflow-hidden flex flex-col">
+          {renderScreen()}
+        </main>
+        
+        {/* Navigation Bar */}
+        {showNav && (
+          <Navigation 
+            currentScreen={screen} 
+            setScreen={setScreen} 
+            unreadCount={totalUnread} 
+            lang={lang}
+          />
+        )}
+
+        {/* Splash Screen Overlay */}
+        {showSplash && <SplashScreen />}
+      </div>
     </div>
   );
 };

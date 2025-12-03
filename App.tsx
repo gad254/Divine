@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Flame } from 'lucide-react';
 import { Home } from './pages/Home';
@@ -336,11 +335,11 @@ const App: React.FC = () => {
     try {
       switch (screen) {
         case AppScreen.ONBOARDING:
-          return <Onboarding onFinish={handleFinishOnboarding} lang={lang} />;
+          return <Onboarding onFinish={handleFinishOnboarding} lang={lang} setLang={setLang} />;
         case AppScreen.LOGIN:
-          return <Login onLogin={() => {}} onNavigateSignup={() => setScreen(AppScreen.SIGNUP)} lang={lang} />;
+          return <Login onLogin={() => {}} onNavigateSignup={() => setScreen(AppScreen.SIGNUP)} lang={lang} setLang={setLang} />;
         case AppScreen.SIGNUP:
-          return <Signup onSignup={() => {}} onNavigateLogin={() => setScreen(AppScreen.LOGIN)} lang={lang} />;
+          return <Signup onSignup={() => {}} onNavigateLogin={() => setScreen(AppScreen.LOGIN)} lang={lang} setLang={setLang} />;
         case AppScreen.SWIPE:
           return <Home 
             deck={deck} 
@@ -379,7 +378,7 @@ const App: React.FC = () => {
         case AppScreen.PROFILE:
           return user ? <ProfilePage user={user} onUpdateUser={handleUpdateUser} lang={lang} setLang={setLang} /> : null;
         default:
-          return <Login onLogin={() => {}} onNavigateSignup={() => setScreen(AppScreen.SIGNUP)} lang={lang} />;
+          return <Login onLogin={() => {}} onNavigateSignup={() => setScreen(AppScreen.SIGNUP)} lang={lang} setLang={setLang} />;
       }
     } catch (e) {
       setErrorBoundary(true);
@@ -405,7 +404,13 @@ const App: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-gray-100 flex items-center justify-center font-sans text-gray-900 overflow-hidden">
-      <div className="w-full h-full md:w-[400px] md:h-[90vh] md:max-h-[900px] bg-white md:rounded-3xl shadow-2xl overflow-hidden relative flex flex-col border-gray-200 md:border transform transition-all">
+      {/* 
+         Responsive Container:
+         - h-screen-safe: Uses 100dvh on mobile to handle address bars correctly.
+         - md:h-[90vh]: Uses 90% height on desktop for a "phone frame" look.
+         - w-full on mobile, fixed width on desktop.
+      */}
+      <div className="w-full h-screen-safe md:w-[400px] md:h-[90vh] md:max-h-[900px] bg-white md:rounded-3xl shadow-2xl overflow-hidden relative flex flex-col border-gray-200 md:border transform transition-all">
         
         <main className="flex-1 relative overflow-hidden flex flex-col">
           {renderScreen()}

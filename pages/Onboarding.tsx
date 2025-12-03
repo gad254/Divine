@@ -1,15 +1,16 @@
 
 import React, { useState } from 'react';
-import { Flame, Coins, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Flame, Coins, ShieldCheck, ChevronRight, ChevronDown } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../utils/translations';
 
 interface OnboardingProps {
   onFinish: () => void;
   lang: Language;
+  setLang: (lang: Language) => void;
 }
 
-export const Onboarding: React.FC<OnboardingProps> = ({ onFinish, lang }) => {
+export const Onboarding: React.FC<OnboardingProps> = ({ onFinish, lang, setLang }) => {
   const [slide, setSlide] = useState(0);
   const t = translations[lang].onboarding;
 
@@ -47,6 +48,25 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onFinish, lang }) => {
 
   return (
     <div className="h-full flex flex-col bg-white relative overflow-hidden">
+      {/* Language Selector */}
+      <div className="absolute top-4 left-4 z-20">
+        <div className="relative">
+            <select 
+                value={lang}
+                onChange={(e) => setLang(e.target.value as Language)}
+                className="appearance-none bg-gray-50 border border-gray-200 text-gray-500 py-1 pl-3 pr-8 rounded-full text-xs font-bold outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer hover:bg-gray-100 transition-colors uppercase"
+            >
+                <option value="en">EN</option>
+                <option value="fr">FR</option>
+                <option value="sw">SW</option>
+                <option value="ln">LN</option>
+            </select>
+            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                 <ChevronDown size={12} />
+            </div>
+        </div>
+      </div>
+
       {/* Skip Button */}
       <div className="absolute top-4 right-4 z-20">
         <button 

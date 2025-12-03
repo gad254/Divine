@@ -131,7 +131,7 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
   return (
     <div className="relative w-full h-full flex flex-col pt-4 pb-24 px-4 overflow-hidden bg-white">
       {/* Header */}
-      <div className="flex justify-between items-center mb-4 px-2 shrink-0">
+      <div className="flex justify-between items-center mb-2 md:mb-4 px-2 shrink-0 h-10">
          <div className="flex items-center gap-1">
             <span className="text-2xl font-bold text-primary">Divine</span>
             <span className="text-xs font-semibold bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-0.5 rounded-full">{t.gold}</span>
@@ -142,7 +142,7 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
       </div>
 
       {/* Card Stack */}
-      <div className="flex-1 relative w-full mb-6">
+      <div className="flex-1 relative w-full mb-4 md:mb-6 min-h-0">
           {/* Background Card Effect */}
           {deck.length > 1 && (
             <div className="absolute top-0 left-0 right-0 bottom-0 scale-[0.95] translate-y-3 opacity-60 z-0 transition-all duration-300">
@@ -177,40 +177,40 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-center items-center gap-4 h-20 relative z-20 shrink-0">
+      <div className="flex justify-center items-center gap-3 md:gap-4 h-16 md:h-20 relative z-20 shrink-0">
         
         {/* Undo Button */}
         <button 
           onClick={onUndo}
           disabled={!canUndo || animatingOut}
-          className="w-10 h-10 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-yellow-500 hover:scale-110 transition-all disabled:opacity-50 disabled:hover:scale-100"
+          className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-yellow-500 hover:scale-110 transition-all disabled:opacity-50 disabled:hover:scale-100"
           title={t.undo}
         >
-          <RotateCcw size={20} strokeWidth={2.5} />
+          <RotateCcw size={18} md:size={20} strokeWidth={2.5} />
         </button>
 
         <button 
           onClick={() => completeSwipe('left')}
           disabled={animatingOut}
-          className="w-14 h-14 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-red-500 hover:bg-red-50 hover:scale-110 transition-all disabled:opacity-50 disabled:hover:scale-100"
+          className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-red-500 hover:bg-red-50 hover:scale-110 transition-all disabled:opacity-50 disabled:hover:scale-100"
           title={t.passed}
         >
-          <X size={32} strokeWidth={2.5} />
+          <X size={24} md:size={32} strokeWidth={2.5} />
         </button>
 
         <button 
-          className="w-10 h-10 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-blue-400 hover:scale-110 transition-all"
+          className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-blue-400 hover:scale-110 transition-all"
         >
-          <Star size={20} strokeWidth={2.5} />
+          <Star size={18} md:size={20} strokeWidth={2.5} />
         </button>
 
         <button 
           onClick={() => completeSwipe('right')}
           disabled={animatingOut}
-          className="w-14 h-14 rounded-full bg-gradient-to-tr from-primary to-secondary shadow-lg shadow-primary/30 flex items-center justify-center text-white hover:scale-110 transition-all disabled:opacity-50 disabled:hover:scale-100"
+          className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-tr from-primary to-secondary shadow-lg shadow-primary/30 flex items-center justify-center text-white hover:scale-110 transition-all disabled:opacity-50 disabled:hover:scale-100"
           title={t.liked}
         >
-          <Heart size={32} fill="currentColor" />
+          <Heart size={24} md:size={32} fill="currentColor" />
         </button>
       </div>
 

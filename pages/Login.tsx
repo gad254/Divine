@@ -3,7 +3,6 @@ import { Flame, Mail, Lock, AlertCircle, ChevronDown } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../utils/translations';
 import { supabase } from '../services/supabaseClient';
-import { Provider } from '@supabase/supabase-js';
 
 interface LoginProps {
   onLogin: () => void;
@@ -39,22 +38,27 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigateSignup, lang, s
     }
   };
 
-  const handleOAuthLogin = async (provider: Provider | 'instagram' | 'tiktok') => {
+  const handleOAuthLogin = async (providerName: string) => {
       setError(null);
       try {
-          // Note: You must enable these providers in your Supabase Dashboard
-          // Authentication > Providers
+          // Cast to any to allow providers that might not be in the strict enum yet (like tiktok)
+          // Note: You must enable these providers in Supabase Dashboard > Authentication > Providers
           const { error } = await supabase.auth.signInWithOAuth({
-              provider: provider as Provider,
+              provider: providerName as any,
               options: {
                 redirectTo: window.location.origin,
                 skipBrowserRedirect: false
               }
           });
+          
           if (error) throw error;
       } catch (err: any) {
           console.error("OAuth Error:", err);
-          setError(err.message || `Failed to connect with ${provider}`);
+          let msg = err.message || `Failed to connect with ${providerName}`;
+          if (msg.includes('not enabled')) {
+             msg = `${providerName} is not enabled in the app configuration.`;
+          }
+          setError(msg);
       }
   };
 
@@ -151,6 +155,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigateSignup, lang, s
         <div className="grid grid-cols-4 gap-3 md:gap-4">
           {/* Google */}
           <button
+            type="button"
             onClick={() => handleOAuthLogin('google')}
             className="aspect-square bg-white border border-gray-200 rounded-2xl flex items-center justify-center hover:bg-gray-50 hover:scale-105 transition-all shadow-sm"
             aria-label="Sign in with Google"
@@ -178,6 +183,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigateSignup, lang, s
 
           {/* Facebook */}
           <button
+            type="button"
             onClick={() => handleOAuthLogin('facebook')}
             className="aspect-square bg-[#1877F2] rounded-2xl flex items-center justify-center hover:opacity-90 hover:scale-105 transition-all shadow-sm text-white"
             aria-label="Sign in with Facebook"
@@ -190,6 +196,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigateSignup, lang, s
 
           {/* Instagram */}
           <button
+            type="button"
             onClick={() => handleOAuthLogin('instagram')}
             className="aspect-square bg-gradient-to-tr from-[#FD1D1D] via-[#E1306C] to-[#C13584] rounded-2xl flex items-center justify-center hover:opacity-90 hover:scale-105 transition-all shadow-sm text-white"
             aria-label="Sign in with Instagram"
@@ -204,6 +211,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onNavigateSignup, lang, s
 
           {/* TikTok */}
           <button
+            type="button"
             onClick={() => handleOAuthLogin('tiktok')}
             className="aspect-square bg-black rounded-2xl flex items-center justify-center hover:opacity-80 hover:scale-105 transition-all shadow-sm text-white"
             aria-label="Sign in with TikTok"

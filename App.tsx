@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Flame } from 'lucide-react';
 import { Home } from './pages/Home';
@@ -8,6 +9,7 @@ import { Store } from './pages/Store';
 import { ProfilePage } from './pages/Profile';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
+import { Onboarding } from './pages/Onboarding';
 import { AppScreen, UserProfile, Match, Message, Language } from './types';
 import { supabase } from './services/supabaseClient';
 
@@ -35,6 +37,7 @@ const App: React.FC = () => {
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [activeMatchId, setActiveMatchId] = useState<string | null>(null);
   const [lang, setLang] = useState<Language>('en');
+  const [errorBoundary, setErrorBoundary] = useState(false);
 
   // Swipe Undo State
   const [lastSwipe, setLastSwipe] = useState<{ profile: UserProfile, matchId?: string } | null>(null);
@@ -112,7 +115,8 @@ const App: React.FC = () => {
       if (session) {
         fetchProfile(session.user.id, session.user.email);
       } else {
-        setScreen(AppScreen.LOGIN);
+        // Only set to login if we are NOT showing splash/onboarding handled below
+        // This is handled by the auth state listener usually
       }
     });
 
@@ -149,17 +153,33 @@ const App: React.FC = () => {
 
     if (error) {
       console.error("Error saving profile:", error);
-      // Optional: Revert local state if needed
     }
   };
 
-  // Splash Screen Timer
+  // Splash Screen & Onboarding Logic
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
+      
+      const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+      // If user is already logged in, auth listener sets screen to SWIPE
+      // If NOT logged in (user is null), we decide between Onboarding and Login
+      if (!user) {
+        if (!hasSeenOnboarding) {
+          setScreen(AppScreen.ONBOARDING);
+        } else {
+          setScreen(AppScreen.LOGIN);
+        }
+      }
     }, 2500);
     return () => clearTimeout(timer);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
+
+  const handleFinishOnboarding = () => {
+    localStorage.setItem('hasSeenOnboarding', 'true');
+    setScreen(AppScreen.LOGIN);
+  };
 
   // Load matches demo
   useEffect(() => {
@@ -235,21 +255,15 @@ const App: React.FC = () => {
 
   const handleUndo = () => {
     if (!lastSwipe) return;
-    
-    // Restore card to deck
     setDeck(prev => [lastSwipe.profile, ...prev]);
-    
-    // Remove match if it existed
     if (lastSwipe.matchId) {
         setMatches(prev => prev.filter(m => m.id !== lastSwipe.matchId));
-        // Remove messages for this match
         setMessages(prev => {
             const newMsgs = { ...prev };
             delete newMsgs[lastSwipe.matchId!];
             return newMsgs;
         });
     }
-    
     setLastSwipe(null);
   };
 
@@ -278,18 +292,15 @@ const App: React.FC = () => {
       : m
     ));
 
-    // Push Notification Logic
     if (senderId !== 'user') {
       const match = matches.find(m => m.id === matchId);
       const matchName = match?.profile.name || 'Divine Match';
-
-      // Only notify if permissions granted AND (app is hidden OR user is on different screen/chat)
       if ('Notification' in window && Notification.permission === 'granted') {
         if (document.hidden || screen !== AppScreen.CHAT || activeMatchId !== matchId) {
           try {
             new Notification(`Message from ${matchName}`, {
               body: text,
-              icon: match?.profile.photos?.[0]?.url || 'https://picsum.photos/100/100', // Use match photo or default
+              icon: match?.profile.photos?.[0]?.url || 'https://picsum.photos/100/100',
               silent: false,
             });
           } catch (e) {
@@ -322,79 +333,84 @@ const App: React.FC = () => {
   };
 
   const renderScreen = () => {
-    switch (screen) {
-      case AppScreen.LOGIN:
-        return <Login onLogin={() => {}} onNavigateSignup={() => setScreen(AppScreen.SIGNUP)} lang={lang} />;
-      case AppScreen.SIGNUP:
-        return <Signup onSignup={() => {}} onNavigateLogin={() => setScreen(AppScreen.LOGIN)} lang={lang} />;
-      case AppScreen.SWIPE:
-        return <Home 
-          deck={deck} 
-          setDeck={setDeck} 
-          onSwipeLeft={handleSwipeLeft} 
-          onSwipeRight={handleSwipeRight} 
-          onUndo={handleUndo}
-          canUndo={!!lastSwipe}
-          lang={lang} 
-        />;
-      case AppScreen.MATCHES:
-        return <Matches matches={matches} onSelectMatch={handleSelectMatch} lang={lang} />;
-      case AppScreen.CHAT:
-        if (!activeMatchId) return <Matches matches={matches} onSelectMatch={handleSelectMatch} lang={lang} />;
-        const match = matches.find(m => m.id === activeMatchId);
-        if (!match) return <Matches matches={matches} onSelectMatch={handleSelectMatch} lang={lang} />;
-        return (
-          <Chat 
-            match={match} 
-            messages={messages[activeMatchId] || []} 
-            onBack={() => setScreen(AppScreen.MATCHES)}
-            onSendMessage={handleSendMessage}
-          />
-        );
-      case AppScreen.STORE:
-        return user ? (
-          <Store 
-            coins={user.coins} 
-            isBoostActive={!!user.isBoostActive}
-            boostEndTime={user.boostEndTime}
-            onBuyBoost={handleBuyBoost}
-            onAddCoins={handleAddCoins}
-            lang={lang}
-          />
-        ) : null;
-      case AppScreen.PROFILE:
-        return user ? <ProfilePage user={user} onUpdateUser={handleUpdateUser} lang={lang} setLang={setLang} /> : null;
-      default:
-        return <Home 
-          deck={deck} 
-          setDeck={setDeck} 
-          onSwipeLeft={handleSwipeLeft} 
-          onSwipeRight={handleSwipeRight} 
-          onUndo={handleUndo}
-          canUndo={!!lastSwipe}
-          lang={lang} 
-        />;
+    try {
+      switch (screen) {
+        case AppScreen.ONBOARDING:
+          return <Onboarding onFinish={handleFinishOnboarding} lang={lang} />;
+        case AppScreen.LOGIN:
+          return <Login onLogin={() => {}} onNavigateSignup={() => setScreen(AppScreen.SIGNUP)} lang={lang} />;
+        case AppScreen.SIGNUP:
+          return <Signup onSignup={() => {}} onNavigateLogin={() => setScreen(AppScreen.LOGIN)} lang={lang} />;
+        case AppScreen.SWIPE:
+          return <Home 
+            deck={deck} 
+            setDeck={setDeck} 
+            onSwipeLeft={handleSwipeLeft} 
+            onSwipeRight={handleSwipeRight} 
+            onUndo={handleUndo}
+            canUndo={!!lastSwipe}
+            lang={lang} 
+          />;
+        case AppScreen.MATCHES:
+          return <Matches matches={matches} onSelectMatch={handleSelectMatch} lang={lang} />;
+        case AppScreen.CHAT:
+          if (!activeMatchId) return <Matches matches={matches} onSelectMatch={handleSelectMatch} lang={lang} />;
+          const match = matches.find(m => m.id === activeMatchId);
+          if (!match) return <Matches matches={matches} onSelectMatch={handleSelectMatch} lang={lang} />;
+          return (
+            <Chat 
+              match={match} 
+              messages={messages[activeMatchId] || []} 
+              onBack={() => setScreen(AppScreen.MATCHES)}
+              onSendMessage={handleSendMessage}
+            />
+          );
+        case AppScreen.STORE:
+          return user ? (
+            <Store 
+              coins={user.coins} 
+              isBoostActive={!!user.isBoostActive}
+              boostEndTime={user.boostEndTime}
+              onBuyBoost={handleBuyBoost}
+              onAddCoins={handleAddCoins}
+              lang={lang}
+            />
+          ) : null;
+        case AppScreen.PROFILE:
+          return user ? <ProfilePage user={user} onUpdateUser={handleUpdateUser} lang={lang} setLang={setLang} /> : null;
+        default:
+          return <Login onLogin={() => {}} onNavigateSignup={() => setScreen(AppScreen.SIGNUP)} lang={lang} />;
+      }
+    } catch (e) {
+      setErrorBoundary(true);
+      return null;
     }
   };
 
   const totalUnread = matches.reduce((acc, m) => acc + m.unreadCount, 0);
-  const showNav = screen !== AppScreen.CHAT && screen !== AppScreen.LOGIN && screen !== AppScreen.SIGNUP && user !== null;
+  const showNav = screen !== AppScreen.CHAT && screen !== AppScreen.LOGIN && screen !== AppScreen.SIGNUP && screen !== AppScreen.ONBOARDING && user !== null;
+
+  if (errorBoundary) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-white p-8 text-center">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+           <Flame className="text-red-500" size={32} />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+        <p className="text-gray-500 mb-6">We encountered an unexpected error. Please try reloading the app.</p>
+        <button onClick={() => window.location.reload()} className="bg-primary text-white px-6 py-2 rounded-full font-bold">Reload App</button>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-gray-100 flex items-center justify-center font-sans text-gray-900 overflow-hidden">
-      {/* App Container - Responsive */}
-      {/* 
-          Mobile: Full width/height, no rounding
-          Desktop: Fixed width/height relative to viewport, rounded, shadowed
-      */}
-      <div className="w-full h-full md:w-[400px] md:h-[90vh] md:max-h-[900px] bg-white md:rounded-3xl shadow-2xl overflow-hidden relative flex flex-col border-gray-200 md:border">
+      <div className="w-full h-full md:w-[400px] md:h-[90vh] md:max-h-[900px] bg-white md:rounded-3xl shadow-2xl overflow-hidden relative flex flex-col border-gray-200 md:border transform transition-all">
         
-        {/* Main Screen Content */}
         <main className="flex-1 relative overflow-hidden flex flex-col">
           {renderScreen()}
         </main>
         
-        {/* Navigation Bar */}
         {showNav && (
           <Navigation 
             currentScreen={screen} 
@@ -404,7 +420,6 @@ const App: React.FC = () => {
           />
         )}
 
-        {/* Splash Screen Overlay */}
         {showSplash && <SplashScreen />}
       </div>
     </div>

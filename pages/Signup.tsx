@@ -3,6 +3,7 @@ import { ArrowLeft, User, Mail, Lock, Calendar, AlertCircle, ChevronDown } from 
 import { Language } from '../types';
 import { translations } from '../utils/translations';
 import { supabase } from '../services/supabaseClient';
+import { Provider } from '@supabase/supabase-js';
 
 interface SignupProps {
   onSignup: (data: any) => void;
@@ -71,16 +72,20 @@ export const Signup: React.FC<SignupProps> = ({ onSignup, onNavigateLogin, lang,
     }
   };
 
-  const handleOAuthLogin = async (provider: 'google' | 'facebook' | 'not_supported') => {
-      if (provider === 'not_supported') {
-          alert("Not configured in this demo.");
-          return;
-      }
+  const handleOAuthLogin = async (provider: Provider | 'instagram' | 'tiktok') => {
+      setError(null);
       try {
-          const { error } = await supabase.auth.signInWithOAuth({ provider });
+          const { error } = await supabase.auth.signInWithOAuth({ 
+              provider: provider as Provider,
+              options: {
+                  redirectTo: window.location.origin,
+                  skipBrowserRedirect: false
+              }
+          });
           if (error) throw error;
       } catch (err: any) {
-          setError(err.message);
+          console.error("OAuth Error:", err);
+          setError(err.message || `Failed to connect with ${provider}`);
       }
   };
 
@@ -228,10 +233,10 @@ export const Signup: React.FC<SignupProps> = ({ onSignup, onNavigateLogin, lang,
           <button onClick={() => handleOAuthLogin('facebook')} className="aspect-square bg-[#1877F2] rounded-2xl flex items-center justify-center hover:opacity-90 hover:scale-105 transition-all shadow-sm text-white">
             <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
           </button>
-          <button onClick={() => handleOAuthLogin('not_supported')} className="aspect-square bg-gradient-to-tr from-[#FD1D1D] via-[#E1306C] to-[#C13584] rounded-2xl flex items-center justify-center hover:opacity-90 hover:scale-105 transition-all shadow-sm text-white">
+          <button onClick={() => handleOAuthLogin('instagram')} className="aspect-square bg-gradient-to-tr from-[#FD1D1D] via-[#E1306C] to-[#C13584] rounded-2xl flex items-center justify-center hover:opacity-90 hover:scale-105 transition-all shadow-sm text-white">
             <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
           </button>
-          <button onClick={() => handleOAuthLogin('not_supported')} className="aspect-square bg-black rounded-2xl flex items-center justify-center hover:opacity-80 hover:scale-105 transition-all shadow-sm text-white">
+          <button onClick={() => handleOAuthLogin('tiktok')} className="aspect-square bg-black rounded-2xl flex items-center justify-center hover:opacity-80 hover:scale-105 transition-all shadow-sm text-white">
              <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
           </button>
       </div>

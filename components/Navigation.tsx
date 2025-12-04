@@ -21,19 +21,19 @@ export const Navigation: React.FC<NavigationProps> = ({ currentScreen, setScreen
   ];
 
   return (
-    <nav className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe pt-2 px-6 h-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50">
-      <div className="flex justify-between items-center h-full pb-4">
+    <nav className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe pt-2 px-6 min-h-[5rem] h-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50">
+      <div className="flex justify-between items-start h-full pb-1">
         {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setScreen(item.id)}
-            className={`flex flex-col items-center justify-center w-16 h-14 space-y-1 transition-colors relative ${
+            className={`flex flex-col items-center justify-center w-16 space-y-1 transition-colors relative pt-2 ${
               currentScreen === item.id ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
             <item.icon size={currentScreen === item.id ? 28 : 24} strokeWidth={currentScreen === item.id ? 2.5 : 2} />
             {item.badge ? (
-              <span className="absolute top-0 right-2 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white">
+              <span className="absolute top-1 right-3 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white">
                 {item.badge}
               </span>
             ) : null}

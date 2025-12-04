@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Zap, Crown, PlayCircle, Coins, Clock } from 'lucide-react';
 import { Language } from '../types';
@@ -38,7 +37,7 @@ export const Store: React.FC<StoreProps> = ({ coins, isBoostActive, boostEndTime
   }, [boostEndTime, isBoostActive]);
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 pb-24 overflow-y-auto">
+    <div className="flex flex-col h-full bg-gray-50 pb-32 overflow-y-auto">
       {/* Header */}
       <div className="bg-white px-6 py-6 shadow-sm mb-6 sticky top-0 z-10">
         <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>

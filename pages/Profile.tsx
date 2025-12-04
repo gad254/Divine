@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Camera, Settings, Edit2, Zap, CheckCircle, AlertCircle, Trash2, Star, Plus, X, Check, ChevronLeft, ChevronRight, Globe, ChevronDown, TextQuote, MapPin, Maximize2, Loader2, AlertTriangle } from 'lucide-react';
+import { Camera, Settings, Edit2, Zap, CheckCircle, AlertCircle, Trash2, Star, Plus, X, Check, ChevronLeft, ChevronRight, Globe, ChevronDown, TextQuote, MapPin, Maximize2, Loader2, AlertTriangle, Briefcase } from 'lucide-react';
 import { UserProfile, Language, Photo } from '../types';
 import { moderateImage } from '../services/geminiService';
 import { translations } from '../utils/translations';
@@ -25,6 +24,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, la
   const [bioInput, setBioInput] = useState(user.bio);
   const [ageInput, setAgeInput] = useState(String(user.age));
   const [locationInput, setLocationInput] = useState(user.location);
+  const [jobInput, setJobInput] = useState(user.job);
   
   // Upload Queue State
   const [uploadQueue, setUploadQueue] = useState<UploadStatus[]>([]);
@@ -58,8 +58,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, la
         setBioInput(user.bio);
         setAgeInput(String(user.age));
         setLocationInput(user.location);
+        setJobInput(user.job);
     }
-  }, [user.bio, user.age, user.location, isEditingBio]);
+  }, [user.bio, user.age, user.location, user.job, isEditingBio]);
 
   // Calculate profile completion
   const completionPercentage = useMemo(() => {
@@ -266,7 +267,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, la
         ...user, 
         bio: bioInput, 
         age: newAge,
-        location: locationInput 
+        location: locationInput,
+        job: jobInput
     });
     setIsEditingBio(false);
   };
@@ -309,7 +311,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, la
   const isGlobalUploading = uploadQueue.some(q => q.status === 'uploading');
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 pb-24 overflow-y-auto">
+    <div className="flex flex-col h-full bg-gray-50 pb-32 overflow-y-auto">
       {/* Header Image Area */}
       <div className="relative h-64 w-full shrink-0">
          <img 
@@ -323,9 +325,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, la
                  <div>
                      <h1 className="text-3xl font-bold">{user.name}, {user.age}</h1>
                      <div className="flex items-center gap-2 opacity-90 mt-1">
-                        <p>{user.job}</p>
+                        <Briefcase size={14} />
+                        <p>{user.job || 'No Job Added'}</p>
                         {user.location && (
-                            <div className="flex items-center gap-1 text-xs bg-white/20 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                            <div className="flex items-center gap-1 text-xs bg-white/20 px-2 py-0.5 rounded-full backdrop-blur-sm ml-2">
                                 <MapPin size={10} />
                                 <span>{user.location}</span>
                             </div>
@@ -370,6 +373,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, la
                     setBioInput(user.bio);
                     setAgeInput(String(user.age));
                     setLocationInput(user.location);
+                    setJobInput(user.job);
                     setIsEditingBio(true);
                 }}
                 className={`w-14 h-14 rounded-full shadow-md flex items-center justify-center transition-colors ${isEditingBio ? 'bg-primary text-white' : 'bg-white text-gray-600 hover:text-primary'}`}
@@ -579,6 +583,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, la
                             setBioInput(user.bio);
                             setAgeInput(String(user.age));
                             setLocationInput(user.location);
+                            setJobInput(user.job);
                             setIsEditingBio(true);
                         }}
                         className="p-1 text-gray-400 hover:text-primary transition-colors"
@@ -613,6 +618,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, la
                             />
                           </div>
                       </div>
+
+                      <div className="mb-3">
+                        <label className="text-xs font-bold text-gray-500 uppercase block mb-1.5">Job Title</label>
+                        <input
+                            type="text"
+                            value={jobInput}
+                            onChange={(e) => setJobInput(e.target.value)}
+                            className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-gray-900 font-medium"
+                            placeholder="e.g. Designer, Student"
+                        />
+                      </div>
                       
                       <div className="mb-2">
                         <label className="text-xs font-bold text-gray-500 uppercase block mb-1.5">{t.aboutMe}</label>
@@ -632,6 +648,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, la
                                 setBioInput(user.bio);
                                 setAgeInput(String(user.age));
                                 setLocationInput(user.location);
+                                setJobInput(user.job);
                             }}
                             className="px-4 py-2 text-xs font-bold text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
                           >

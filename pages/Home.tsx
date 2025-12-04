@@ -129,7 +129,7 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col pt-4 pb-24 px-4 overflow-hidden bg-white">
+    <div className="relative w-full h-full flex flex-col pt-4 pb-32 px-4 overflow-hidden bg-white">
       {/* Header */}
       <div className="flex justify-between items-center mb-2 md:mb-4 px-2 shrink-0 h-10">
          <div className="flex items-center gap-1">
@@ -146,7 +146,7 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
           {/* Background Card Effect */}
           {deck.length > 1 && (
             <div className="absolute top-0 left-0 right-0 bottom-0 scale-[0.95] translate-y-3 opacity-60 z-0 transition-all duration-300">
-                <Card profile={deck[1]} onReport={() => {}} />
+                <Card profile={deck[1]} />
             </div>
           )}
           
@@ -159,7 +159,7 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
             >
-                <Card profile={deck[0]} onReport={handleReport} />
+                <Card profile={deck[0]} />
                 
                 {/* Visual Indicators (Stamps) */}
                 {dragX > 60 && (
@@ -199,6 +199,7 @@ export const Home: React.FC<HomeProps> = ({ deck, setDeck, onSwipeLeft, onSwipeR
         </button>
 
         <button 
+          onClick={handleReport}
           className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-blue-400 hover:scale-110 transition-all"
         >
           <Star size={18} md:size={20} strokeWidth={2.5} />

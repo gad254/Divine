@@ -20,7 +20,7 @@ export const Matches: React.FC<MatchesProps> = ({ matches, onSelectMatch, lang }
   };
 
   return (
-    <div className="flex flex-col h-full bg-white pb-24">
+    <div className="flex flex-col h-full bg-white pb-32">
       {/* Header */}
       <div className="px-6 pt-6 pb-2 shrink-0">
         <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>

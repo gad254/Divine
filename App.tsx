@@ -142,6 +142,7 @@ const App: React.FC = () => {
         bio: updatedUser.bio,
         age: updatedUser.age,
         location: updatedUser.location,
+        job: updatedUser.job,
         interests: updatedUser.interests,
         photos: updatedUser.photos,
         coins: updatedUser.coins,
